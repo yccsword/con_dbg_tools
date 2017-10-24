@@ -53,7 +53,7 @@ static int cprintf(const char *format, ...)
 
     return rv;
 }
-
+#define MAX_BUF_LEN 2048
 inline int _dbg_printf(int color,const char * func,const int line, const char *format, ...) 
 {
     int rv = -1;
@@ -63,8 +63,9 @@ inline int _dbg_printf(int color,const char * func,const int line, const char *f
         if ((dbg_level < 10) || (dbg_level >= 10 && color == (dbg_level - 10)))
         {
             va_list args;
+            char buf[MAX_BUF_LEN] = {0};
+            int value_len = 0;
             struct timeval tv;
-            int format_len = 0;
             gettimeofday(&tv, NULL);
             switch(color)
             {
@@ -81,16 +82,14 @@ inline int _dbg_printf(int color,const char * func,const int line, const char *f
             }
             cprintf("[%ld.%ld][%s]:%d ", tv.tv_sec, tv.tv_usec / 1000, func, line);
             va_start(args, format);
-            format_len = strlen(format) + 1;
-            char * buf = malloc(format_len);
-            vsnprintf(buf, format_len, format, args);
+            vsnprintf(buf, MAX_BUF_LEN, format, args);
             va_end(args); 
-            if (buf[format_len - 2] == '\n') 
+            value_len = strlen(buf);
+            if (buf[value_len - 1] == '\n') 
             {   
-                buf[format_len - 2] = '\0';
+                buf[value_len - 1] = '\0';
             }
             rv = cprintf("%s\033[0m\n", buf);
-            free(buf);
         }
     }
     return rv;
